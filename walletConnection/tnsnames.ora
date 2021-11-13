@@ -1,0 +1,12 @@
+chukwukadb_high = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.me-dubai-1.oraclecloud.com))(connect_data=(service_name=g094790142f4d14_chukwukadb_high.adb.oraclecloud.com))(security=(ssl_server_cert_dn="CN=adb.me-dubai-1.oraclecloud.com, OU=Oracle ADB DUBAI, O=Oracle Corporation, L=Redwood City, ST=California, C=US")))
+
+chukwukadb_low = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.me-dubai-1.oraclecloud.com))(connect_data=(service_name=g094790142f4d14_chukwukadb_low.adb.oraclecloud.com))(security=(ssl_server_cert_dn="CN=adb.me-dubai-1.oraclecloud.com, OU=Oracle ADB DUBAI, O=Oracle Corporation, L=Redwood City, ST=California, C=US")))
+
+chukwukadb_medium = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.me-dubai-1.oraclecloud.com))(connect_data=(service_name=g094790142f4d14_chukwukadb_medium.adb.oraclecloud.com))(security=(ssl_server_cert_dn="CN=adb.me-dubai-1.oraclecloud.com, OU=Oracle ADB DUBAI, O=Oracle Corporation, L=Redwood City, ST=California, C=US")))
+
+chukwukadb_tp = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.me-dubai-1.oraclecloud.com))(connect_data=(service_name=g094790142f4d14_chukwukadb_tp.adb.oraclecloud.com))(security=(ssl_server_cert_dn="CN=adb.me-dubai-1.oraclecloud.com, OU=Oracle ADB DUBAI, O=Oracle Corporation, L=Redwood City, ST=California, C=US")))
+
+chukwukadb_tpurgent = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.me-dubai-1.oraclecloud.com))(connect_data=(service_name=g094790142f4d14_chukwukadb_tpurgent.adb.oraclecloud.com))(security=(ssl_server_cert_dn="CN=adb.me-dubai-1.oraclecloud.com, OU=Oracle ADB DUBAI, O=Oracle Corporation, L=Redwood City, ST=California, C=US")))
+
+
+

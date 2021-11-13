@@ -1,0 +1,49 @@
+{
+  "name": "new-typeorm-project",
+  "version": "0.0.1",
+  "description": "Awesome project developed with TypeORM.",
+  "devDependencies": {
+    "@types/aws-sdk": "^2.7.0",
+    "@types/bcryptjs": "^2.4.2",
+    "@types/cors": "^2.8.10",
+    "@types/express": "^4.17.12",
+    "@types/jsonwebtoken": "^8.5.4",
+    "@types/node": "^8.0.29",
+    "@types/oracledb": "^5.2.1",
+    "cross-env": "^7.0.3",
+    "nodemon": "^2.0.8",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.4"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^7.4.5",
+    "@socket.io/cluster-adapter": "^0.1.0",
+    "@socket.io/redis-adapter": "^7.0.0",
+    "@socket.io/sticky": "^1.0.1",
+    "@types/redis": "^2.8.32",
+    "@types/uuid": "^8.3.1",
+    "aws-sdk": "^2.1023.0",
+    "bcryptjs": "^2.4.3",
+    "class-validator": "^0.13.1",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "oracledb": "^5.3.0",
+    "redis": "^3.1.2",
+    "reflect-metadata": "^0.1.13",
+    "socket.io": "^4.3.1",
+    "typeorm": "0.2.34",
+    "uuid": "^8.3.2"
+  },
+  "scripts": {
+    "start": "NODE_ENV=production node dist/src/server.js",
+    "dev": "cross-env NODE_ENV=development nodemon --exec ts-node src/server.ts",
+    "build": "rm -r dist && tsc -p .",
+    "typeorm:cli": "ts-node ./node_modules/typeorm/cli.js",
+    "migration-run": "yarn run typeorm:cli migration:run",
+    "migration-revert": "yarn run typeorm:cli migration:revert",
+    "migration-show": "yarn run typeorm:cli migration:show",
+    "migration-generate": "yarn run typeorm:cli -- migration:generate -n"
+  }
+}
