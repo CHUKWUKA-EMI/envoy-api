@@ -1,4 +1,19 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -50,8 +65,10 @@ exports.User = void 0;
 var typeorm_1 = require("typeorm");
 var class_validator_1 = require("class-validator");
 var bcrypt = require("bcryptjs");
-var User = /** @class */ (function () {
+var User = /** @class */ (function (_super) {
+    __extends(User, _super);
     function User() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
     User.prototype.hashPassword = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -69,60 +86,64 @@ var User = /** @class */ (function () {
         });
     };
     __decorate([
-        typeorm_1.PrimaryGeneratedColumn("uuid"),
+        (0, typeorm_1.PrimaryGeneratedColumn)("uuid"),
         __metadata("design:type", String)
     ], User.prototype, "id", void 0);
     __decorate([
-        typeorm_1.Column({ nullable: false }),
+        (0, typeorm_1.Column)({ nullable: false }),
         __metadata("design:type", String)
     ], User.prototype, "firstName", void 0);
     __decorate([
-        typeorm_1.Column({ nullable: false }),
+        (0, typeorm_1.Column)({ nullable: false }),
         __metadata("design:type", String)
     ], User.prototype, "lastName", void 0);
     __decorate([
-        typeorm_1.Column({ unique: true, nullable: false }),
-        class_validator_1.IsEmail(),
+        (0, typeorm_1.Column)({ unique: true, nullable: false }),
+        (0, class_validator_1.IsEmail)(),
         __metadata("design:type", String)
     ], User.prototype, "email", void 0);
     __decorate([
-        typeorm_1.Column({ nullable: false }),
+        (0, typeorm_1.Column)({ nullable: false }),
         __metadata("design:type", String)
     ], User.prototype, "password", void 0);
     __decorate([
-        typeorm_1.Column({ nullable: true }),
+        (0, typeorm_1.Column)({ nullable: true }),
         __metadata("design:type", String)
     ], User.prototype, "imageUrl", void 0);
     __decorate([
-        typeorm_1.Column({ nullable: true }),
+        (0, typeorm_1.Column)({ nullable: true }),
         __metadata("design:type", String)
     ], User.prototype, "imagekit_id", void 0);
     __decorate([
-        typeorm_1.Column({ default: false }),
+        (0, typeorm_1.Column)({ default: false }),
         __metadata("design:type", Boolean)
     ], User.prototype, "accountEnabled", void 0);
     __decorate([
-        typeorm_1.Column({ default: "user" }),
+        (0, typeorm_1.Column)({ default: "user" }),
         __metadata("design:type", String)
     ], User.prototype, "role", void 0);
     __decorate([
-        typeorm_1.CreateDateColumn(),
+        (0, typeorm_1.Column)({ default: false }),
+        __metadata("design:type", Boolean)
+    ], User.prototype, "isOnline", void 0);
+    __decorate([
+        (0, typeorm_1.CreateDateColumn)(),
         __metadata("design:type", Date)
     ], User.prototype, "createdAt", void 0);
     __decorate([
-        typeorm_1.UpdateDateColumn(),
+        (0, typeorm_1.UpdateDateColumn)(),
         __metadata("design:type", Date)
     ], User.prototype, "updatedAt", void 0);
     __decorate([
-        typeorm_1.BeforeInsert(),
+        (0, typeorm_1.BeforeInsert)(),
         __metadata("design:type", Function),
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], User.prototype, "hashPassword", null);
     User = __decorate([
-        typeorm_1.Entity({ name: "envoy_users" })
+        (0, typeorm_1.Entity)({ name: "envoy_users" })
     ], User);
     return User;
-}());
+}(typeorm_1.BaseEntity));
 exports.User = User;
 //# sourceMappingURL=User.js.map

@@ -7,12 +7,15 @@ import { createConnection } from "typeorm";
 import { Server } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { RedisClient } from "redis";
+const ImageKit = require("imagekit");
 import config from "../ormconfig";
 import userRoutes from "./routes/user";
 import conversationRoutes from "./routes/conversation";
 import chatRoutes from "./routes/chat";
 import authentication from "./middlewares/authenticate";
 import { IChatUser } from "./interfaces/ChatUser";
+import { User } from "./entity/User";
+import { IChat } from "./interfaces/chat";
 
 dotenv.config();
 
@@ -34,6 +37,13 @@ const io = new Server(server, {
 
 io.adapter(createAdapter(pubClient, subClient));
 
+//Imagekit config
+const imagekit = new ImageKit({
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT!,
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY!,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY!,
+});
+
 createConnection(config)
   .then(async (connection) => {
     console.log(`DB Connection established: ${connection.name}`);
@@ -51,15 +61,26 @@ createConnection(config)
     app.use("/api/v1/conversation", conversationRoutes);
     app.use("/api/v1/chat", chatRoutes);
 
+    //Imagekit auth endpoint
+    app.get("/imagekitAuth", (_, res) => {
+      const result = imagekit.getAuthenticationParameters();
+      return res.json(result);
+    });
+
     ///[START] Live chat section
     let users: IChatUser[] = Array<IChatUser>();
-    const addUser = (userId: string, socketId: string) => {
+    const addUser = (userId: string, socketId: string, isOnline: boolean) => {
       !users.some((user) => user.userId === userId) &&
-        users.push({ userId, socketId });
+        users.push({ userId, socketId, isOnline });
     };
 
-    const removeUser = (socketId: string) => {
-      users = users.filter((user) => user.socketId !== socketId);
+    const disconnectUser = (socketId: string) => {
+      users = users.map((user: IChatUser) => {
+        if (user.socketId === socketId) {
+          user.isOnline = false;
+        }
+        return user;
+      });
     };
 
     const getUser = (userId: string) => {
@@ -68,29 +89,28 @@ createConnection(config)
     io.on("connection", (socket) => {
       console.log("a user connected", socket.id);
       //take userId and socketId from user
-      socket.on("addUser", (user) => {
-        addUser(user.userId, socket.id);
+      socket.on("addUser", async ({ userId }) => {
+        console.log("userId", userId);
+        await User.update({ isOnline: true }, { id: userId });
+        addUser(userId, socket.id, true);
         io.emit("getUsers", users);
       });
 
       //send and get message
-      socket.on(
-        "sendMessage",
-        ({ senderId, receiverId, message, imageUrl }) => {
-          const receiver = getUser(receiverId)!;
-          io.to(receiver.socketId).emit("getMessage", {
-            senderId,
-            message,
-            imageUrl,
-          });
-        }
-      );
+      socket.on("sendMessage", (data: IChat) => {
+        const receiver = getUser(data.receiverId)!;
+        io.to(receiver.socketId).emit("getMessage", data);
+      });
 
       //when a user disconnects
       socket.on("disconnect", () => {
         console.log("a user disconnected!");
-        removeUser(socket.id);
-        io.emit("getUsers", users);
+        const user = users.find((u) => u.socketId === socket.id);
+        if (user && user.userId) {
+          // User.update({ isOnline: false }, { id: user?.userId });
+          disconnectUser(socket.id);
+          io.emit("getUsers", users);
+        }
       });
     });
     /// [END] Live chat section

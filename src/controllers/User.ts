@@ -4,6 +4,29 @@ import * as jwt from "jsonwebtoken";
 import { validate } from "class-validator";
 import Email from "../utilities/email";
 import * as bcrypt from "bcryptjs";
+const ImageKit = require("imagekit");
+import * as AWS from "aws-sdk";
+import { IFriend } from "../interfaces/friends";
+import { IConversation } from "../interfaces/conversation";
+
+AWS.config.update({
+  region: "us-east-1",
+  credentials: new AWS.Credentials({
+    accessKeyId: process.env.aws_access_key_id!,
+    secretAccessKey: process.env.aws_secret_access_key!,
+  }),
+});
+
+const dynamoDB = new AWS.DynamoDB.DocumentClient({
+  region: "us-east-1",
+});
+
+//Imagekit config
+const imagekit = new ImageKit({
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT!,
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY!,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY!,
+});
 
 class UserController {
   //create user
@@ -116,16 +139,11 @@ class UserController {
   }
 
   async getAllUsers(req: Request, res: Response) {
-    if ((<any>req).user.role !== "admin") {
-      return res.status(403).json({
-        message:
-          "User does not have sufficient permission to access this route",
-      });
-    }
+    const localUser = (<any>req).user;
     try {
       const user = await User.findAndCount({
         order: { createdAt: "ASC" },
-        cache: true,
+        cache: false,
       });
       const userData: User[] = [];
 
@@ -133,7 +151,58 @@ class UserController {
         delete (<any>u).password;
         userData.push(u);
       });
-      return res.status(200).json({ users: userData, count: user[1] });
+      return res.status(200).json({
+        users: userData.filter((u: User) => u.id !== localUser.id),
+        count: user[1],
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        message: "Oops! Something went wrong. Try again later",
+        meta: error,
+      });
+    }
+  }
+
+  async getFriends(req: Request, res: Response) {
+    const localUser = (<any>req).user;
+
+    try {
+      const users = await User.find({
+        order: { createdAt: "ASC" },
+      });
+      const conversations = await dynamoDB
+        .scan({
+          TableName: "conversations",
+        })
+        .promise();
+      const userConversations = conversations?.Items?.filter(
+        (c: IConversation) => c.members.includes(localUser.id)
+      );
+
+      const friends: IFriend[] = [];
+
+      userConversations?.map((con: IConversation) => {
+        users?.map((user: User) => {
+          if (
+            con.members.includes(user.id) &&
+            con.members.includes(localUser.id) &&
+            user.id !== localUser.id
+          ) {
+            friends.push({
+              id: user.id,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              email: user.email,
+              conversationId: con.id,
+              imageUrl: user.imageUrl,
+              isOnline: user.isOnline,
+            });
+          }
+        });
+      });
+
+      return res.status(200).json({ friends });
     } catch (error) {
       console.log(error);
       return res.status(500).json({
@@ -198,6 +267,19 @@ class UserController {
     }
 
     try {
+      const user = await User.findOne({ where: { id: userId } });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      if (user.imagekit_id) {
+        imagekit.deleteFile(
+          user.imagekit_id,
+          function (error: any, result: any) {
+            if (error) console.log(error);
+            else console.log(result);
+          }
+        );
+      }
       const update = await User.update(req.body, { id: userId });
       if (update) {
         return res.status(200).json({ message: "User updated successfully" });

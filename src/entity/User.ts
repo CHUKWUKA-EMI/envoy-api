@@ -41,6 +41,9 @@ export class User extends BaseEntity {
   @Column({ default: "user" })
   role: string;
 
+  @Column({ default: false })
+  isOnline: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

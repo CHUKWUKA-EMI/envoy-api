@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import * as AWS from "aws-sdk";
-import { v4 as uuid } from "uuid";
+// import { v4 as uuid } from "uuid";
+const ImageKit = require("imagekit");
+import { IChat } from "../interfaces/chat";
 
 AWS.config.update({
   region: "us-east-1",
@@ -14,9 +16,24 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient({
   region: "us-east-1",
 });
 
+//Imagekit config
+const imagekit = new ImageKit({
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT!,
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY!,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY!,
+});
+
 export class Chat {
   async create(req: Request, res: Response) {
-    const { receiverId, conversationId, message, imageUrl } = req.body;
+    const {
+      chatId,
+      receiverId,
+      conversationId,
+      message,
+      imageUrl,
+      imagekit_id,
+      viewed,
+    } = req.body;
     const senderId = (<any>req).user.id;
     if (!receiverId || !conversationId) {
       return res.status(400).json({
@@ -35,28 +52,30 @@ export class Chat {
         .json({ message: "You can't send message to yourself" });
     }
     try {
-      const conversation = await dynamoDB
-        .get({
-          TableName: "conversations",
-          Key: {
-            id: conversationId,
-          },
-        })
-        .promise();
+      // const conversation = await dynamoDB
+      //   .get({
+      //     TableName: "conversations",
+      //     Key: {
+      //       id: conversationId,
+      //     },
+      //   })
+      //   .promise();
 
-      if (!conversation.Item) {
-        return res.status(404).json({
-          message: "Conversation not found",
-        });
-      }
-
-      const chat = {
-        chatId: uuid(),
+      // if (!conversation.Item) {
+      //   return res.status(404).json({
+      //     message: "Conversation not found",
+      //   });
+      // }
+      const chat: IChat = {
+        // chatId: uuid(),
+        chatId,
         senderId,
         receiverId,
         conversationId,
         message,
+        viewed: viewed ? viewed : false,
         imageUrl: imageUrl || "",
+        imagekit_id: imagekit_id || "",
         createdAt: new Date().toISOString(),
       };
 
@@ -166,16 +185,12 @@ export class Chat {
           },
         })
         .promise();
-
-      if (chats.Count == 0) {
-        return res.status(404).json({
-          message: "Chats not found",
-        });
-      }
-
+      const items = chats.Items as IChat[];
       return res.status(200).json({
         message: "Chats found",
-        chats: chats.Items,
+        chats: items.sort(
+          (a, b) => <any>new Date(a.createdAt) - <any>new Date(b.createdAt)
+        ),
       });
     } catch (error) {
       console.log("error finding chats: ", error);
@@ -209,6 +224,16 @@ export class Chat {
         return res.status(404).json({
           message: "Chat not found",
         });
+      }
+
+      if (chat.Item.imagekit_id) {
+        imagekit.deleteFile(
+          chat.Item.imagekit_id,
+          function (error: any, result: any) {
+            if (error) console.log(error);
+            else console.log(result);
+          }
+        );
       }
 
       await dynamoDB
